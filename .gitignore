@@ -1,5 +1,10 @@
-# Virtual environment & environment files
+﻿# Virtual environment & environment files
 .venv/
+Lib/
+Scripts/
+Scripts.bak/
+Include/
+pyvenv.cfg
 .env
 .env.*
 !.env.example
