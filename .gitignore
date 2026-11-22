@@ -1,0 +1,13 @@
+# Virtual environment & environment files
+.venv/
+.env
+.env.*
+!.env.example
+
+# Python & IDE
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.vscode/
+.idea/

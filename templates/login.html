@@ -1,0 +1,30 @@
+{% extends "base_bare.html" %}
+{% from "_macros.html" import csrf, logo %}
+{% block title %}Sign in{% endblock %}
+{% block body_class %}auth{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+  <section class="auth-art">
+    <div class="auth-art-inner">
+      {{ logo(46) }}
+      <h1>{{ brand }}</h1>
+      <p>Pure water. Rewarded loyalty.<br>Every tenth refill is on us.</p>
+    </div>
+  </section>
+  <section class="auth-panel">
+    <form method="post" class="auth-form" autocomplete="on">
+      {{ csrf() }}
+      <h2>Welcome back</h2>
+      <p class="muted">Sign in to the staff portal.</p>
+      {% include "_flash.html" %}
+      <label class="field">Username
+        <input name="username" autocomplete="username" autofocus required>
+      </label>
+      <label class="field">Password
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

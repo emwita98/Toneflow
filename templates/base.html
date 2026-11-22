@@ -1,0 +1,42 @@
+{% from "_macros.html" import logo %}
+<!doctype html>
+<html lang="en">
+<head>
+  {% include "_head.html" %}
+  <title>{% block title %}{% endblock %} · {{ brand }}</title>
+</head>
+<body data-reward-at="{{ REWARD_AT }}">
+{% set ep = request.endpoint %}
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="{{ url_for('dashboard') }}">{{ logo(30) }}<span>{{ brand }}</span></a>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if ep == 'dashboard' }}">Dashboard</a>
+      <a href="{{ url_for('scan') }}" class="{{ 'active' if ep == 'scan' }}">Scan &amp; Refill</a>
+      <a href="{{ url_for('clients') }}" class="{{ 'active' if ep in ('clients', 'client_new', 'client_detail') }}">Clients</a>
+      <a href="{{ url_for('sales') }}" class="{{ 'active' if ep == 'sales' }}">Sales</a>
+      {% if current_user.role == 'admin' %}
+      <a href="{{ url_for('staff') }}" class="{{ 'active' if ep == 'staff' }}">Managers</a>
+      <a href="{{ url_for('settings') }}" class="{{ 'active' if ep == 'settings' }}">Settings</a>
+      {% endif %}
+    </nav>
+    <div class="who">
+      <div class="who-name">{{ current_user.full_name }}</div>
+      <div class="who-role">{{ current_user.role|capitalize }}</div>
+      <div class="who-links">
+        <a href="{{ url_for('account') }}">Password</a>
+        <form method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="linklike" type="submit">Sign out</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+  <main class="content">
+    {% include "_flash.html" %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

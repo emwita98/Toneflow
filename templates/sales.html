@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stat %}
+{% block title %}Sales{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div><div class="eyebrow">Performance</div><h1>Sales</h1></div>
+  <div class="actions">
+    {% if current_user.role == 'admin' %}
+    <a class="btn btn-ghost" href="{{ url_for('sales_export') }}">Export CSV</a>
+    {% endif %}
+  </div>
+</header>
+
+<section class="grid g4">
+  {{ stat("Today", today.revenue|money, today.refills ~ " refills · " ~ today.free ~ " free") }}
+  {{ stat("Last " ~ days ~ " days", range_totals.revenue|money, range_totals.refills ~ " refills · " ~ range_totals.free ~ " free") }}
+  {{ stat("All-time sales", overall.revenue|money, overall.refills ~ " refills") }}
+  {{ stat("Free refills given", overall.free_refills, "since " ~ (overall.since|localdt("%d %b %Y") if overall.since else "launch")) }}
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h3>Daily sales</h3>
+    <div class="seg">
+      {% for d in (7, 14, 30, 90) %}
+      <a href="{{ url_for('sales', days=d) }}" class="{{ 'on' if d == days }}">{{ d }}d</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="bars" role="img" aria-label="Daily sales for the last {{ days }} days">
+    {% for d in daily|reverse %}
+      {% set h = d.revenue|float / max_revenue|float * 100 %}
+      <div class="bar-col" title="{{ d.day|localday }}: {{ d.revenue|money }}">
+        <div class="bar" style="height: {{ '%.1f'|format(h) }}%"></div>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Date</th><th class="num">Refills</th><th class="num">Paid</th><th class="num">Free</th><th class="num">Sales</th></tr></thead>
+    <tbody>
+    {% for d in daily %}
+      <tr>
+        <td class="nowrap">{{ d.day|localday }}{% if loop.first %} <span class="badge gold">Today</span>{% endif %}</td>
+        <td class="num">{{ d.refills }}</td>
+        <td class="num">{{ d.paid }}</td>
+        <td class="num">{{ d.free }}</td>
+        <td class="num strong">{{ d.revenue|money }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><td>Total</td><td class="num">{{ range_totals.refills }}</td><td class="num">{{ range_totals.refills - range_totals.free }}</td><td class="num">{{ range_totals.free }}</td><td class="num">{{ range_totals.revenue|money }}</td></tr>
+    </tfoot>
+  </table>
+  </div>
+</section>
+
+<section class="grid g2 align-start">
+  <div class="card flush">
+    <h3 class="pad">Monthly overview</h3>
+    {% if monthly %}
+    <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Month</th><th class="num">Refills</th><th class="num">Free</th><th class="num">Sales</th></tr></thead>
+      <tbody>
+      {% for m in monthly %}
+        <tr><td>{{ m.label }}</td><td class="num">{{ m.refills }}</td><td class="num">{{ m.free_refills }}</td><td class="num strong">{{ m.revenue|money }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}<p class="muted pad">No sales recorded yet.</p>{% endif %}
+  </div>
+
+  {% if current_user.role == 'admin' %}
+  <div class="card flush">
+    <h3 class="pad">By staff member · all time</h3>
+    {% if by_staff %}
+    <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Staff</th><th class="num">Refills</th><th class="num">Free</th><th class="num">Sales</th></tr></thead>
+      <tbody>
+      {% for s in by_staff %}
+        <tr><td>{{ s.staff }}</td><td class="num">{{ s.refills }}</td><td class="num">{{ s.free_refills }}</td><td class="num strong">{{ s.revenue|money }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}<p class="muted pad">No sales recorded yet.</p>{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

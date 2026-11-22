@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Scan &amp; Refill{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div><div class="eyebrow">At the counter</div><h1>Scan &amp; refill</h1></div>
+</header>
+
+<section class="grid g2 align-start">
+  <div class="card">
+    <h3>Scan client QR</h3>
+    <div id="reader" class="reader" aria-label="Camera preview"></div>
+    <div class="row">
+      <button id="startBtn" class="btn btn-primary" type="button">Start camera</button>
+      <span id="camState" class="muted small">Camera is off.</span>
+    </div>
+    <p class="muted small">Each scan adds one point. A client can earn another point after {{ COOLDOWN_MINUTES }} minutes.</p>
+  </div>
+
+  <div class="stack">
+    <div id="result" class="result idle" role="status" aria-live="polite">
+      <div class="result-title">Ready to scan</div>
+      <div class="result-msg">Results will appear here.</div>
+    </div>
+
+    <div class="card">
+      <h3>No QR? Use a phone number</h3>
+      <form id="phoneForm" class="inline-form" autocomplete="off">
+        <input id="phoneInput" type="tel" inputmode="tel" placeholder="0712 345 678" required>
+        <button class="btn btn-gold" type="submit">Add refill</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Not a member?</h3>
+      <p class="muted small">Record a one-off refill so it still counts in today's sales.</p>
+      <button id="walkinBtn" class="btn btn-ghost" type="button">Record walk-in sale</button>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="{{ url_for('static', filename='js/scan.js') }}"></script>
+{% endblock %}

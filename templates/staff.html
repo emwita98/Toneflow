@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Managers{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div><div class="eyebrow">Administration</div><h1>Managers</h1></div>
+</header>
+
+<section class="grid g2 align-start">
+  <div class="card flush">
+    <h3 class="pad">Team</h3>
+    <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Name</th><th>Role</th><th>Status</th><th class="num">Served</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td><span class="strong">{{ u.full_name }}</span><br><small class="muted">@{{ u.username }}</small></td>
+          <td><span class="badge {{ 'gold' if u.role == 'admin' }}">{{ u.role|capitalize }}</span></td>
+          <td>{% if u.is_active %}<span class="badge ok">Active</span>{% else %}<span class="badge off">Deactivated</span>{% endif %}</td>
+          <td class="num">{{ u.served }}</td>
+          <td class="num">
+            {% if u.id != current_user.id %}
+            <details class="menu">
+              <summary class="btn btn-sm btn-ghost">Manage</summary>
+              <div class="menu-body">
+                <form method="post" action="{{ url_for('staff_password', user_id=u.id) }}" class="stack-sm">
+                  {{ csrf() }}
+                  <input type="password" name="password" placeholder="New password (8+)" minlength="8" required>
+                  <button class="btn btn-sm btn-ghost" type="submit">Reset password</button>
+                </form>
+                <form method="post" action="{{ url_for('staff_toggle', user_id=u.id) }}">
+                  {{ csrf() }}
+                  <button class="btn btn-sm btn-ghost" type="submit">{{ 'Deactivate' if u.is_active else 'Activate' }}</button>
+                </form>
+                <form method="post" action="{{ url_for('staff_delete', user_id=u.id) }}"
+                      onsubmit="return confirm('Delete {{ u.full_name|e }}? Their sales records are kept.');">
+                  {{ csrf() }}
+                  <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                </form>
+              </div>
+            </details>
+            {% else %}<span class="muted small">You</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('staff_new') }}" class="card form-card">
+    {{ csrf() }}
+    <h3>Add a manager</h3>
+    <label class="field">Full name
+      <input name="full_name" maxlength="100" required>
+    </label>
+    <label class="field">Username
+      <input name="username" maxlength="30" autocomplete="off" required>
+    </label>
+    <label class="field">Temporary password
+      <input name="password" type="password" minlength="8" autocomplete="new-password" required>
+    </label>
+    <p class="muted small">Managers can register clients, scan refills and view sales. Only admins can delete clients, manage staff and change settings.</p>
+    <button class="btn btn-primary" type="submit">Create manager</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {% include "_head.html" %}
+  <title>{% block title %}{% endblock %} · {{ brand }}</title>
+</head>
+<body class="{% block body_class %}{% endblock %}" data-reward-at="{{ REWARD_AT }}">
+  {% block body %}{% endblock %}
+</body>
+</html>

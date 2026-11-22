@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Password{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div><div class="eyebrow">Your account</div><h1>Change password</h1></div>
+</header>
+<form method="post" class="card form-card">
+  {{ csrf() }}
+  <label class="field">Current password
+    <input type="password" name="current" autocomplete="current-password" required>
+  </label>
+  <label class="field">New password
+    <input type="password" name="new" autocomplete="new-password" minlength="8" required>
+  </label>
+  <label class="field">Confirm new password
+    <input type="password" name="confirm" autocomplete="new-password" minlength="8" required>
+  </label>
+  <button class="btn btn-primary" type="submit">Update password</button>
+</form>
+{% endblock %}

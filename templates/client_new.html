@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}New client{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div><div class="eyebrow">Loyalty members</div><h1>New client</h1></div>
+</header>
+<form method="post" class="card form-card">
+  {{ csrf() }}
+  <label class="field">Full name
+    <input name="name" value="{{ form.name }}" maxlength="100" autocomplete="off" autofocus required>
+  </label>
+  <label class="field">Phone number
+    <input name="phone" type="tel" inputmode="tel" value="{{ form.phone }}" placeholder="0712 345 678" autocomplete="off" required>
+    <small class="muted">Used to identify the client if they forget their QR card.</small>
+  </label>
+  <div class="row">
+    <button class="btn btn-primary" type="submit">Create account &amp; QR</button>
+    <a class="btn btn-ghost" href="{{ url_for('clients') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

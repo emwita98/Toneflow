@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, dots %}
+{% block title %}{{ client.name }}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <div class="eyebrow"><a href="{{ url_for('clients') }}">← Clients</a></div>
+    <h1>{{ client.name }}</h1>
+    <div class="muted">{{ client.phone|phone }} · member since {{ client.created_at|localdt("%d %b %Y") }}</div>
+  </div>
+</header>
+
+<section class="grid g2 align-start">
+  <div class="stack">
+    <div class="card">
+      <h3>Loyalty progress</h3>
+      {{ dots(client.points) }}
+      <p class="progress-text">
+        {% if client.points >= REWARD_AT %}
+          <strong class="gold-text">Reward unlocked</strong> — the next refill is free.
+        {% else %}
+          <strong>{{ client.points }}</strong> of {{ REWARD_AT }} refills · {{ REWARD_AT - client.points }} to go before a free one.
+        {% endif %}
+      </p>
+      <div class="mini-stats">
+        <div><span>{{ client.total_refills }}</span>Total refills</div>
+        <div><span>{{ client.free_refills_redeemed }}</span>Free redeemed</div>
+        <div><span>{{ client.last_refill_at|localdt("%d %b, %H:%M") }}</span>Last refill</div>
+      </div>
+      <form method="post" action="{{ url_for('client_refill', client_id=client.id) }}" class="row">
+        {{ csrf() }}
+        <button class="btn btn-gold" type="submit">
+          {% if client.points >= REWARD_AT %}Redeem free refill{% else %}Add refill point{% endif %}
+        </button>
+        {% if cooldown_left %}
+          <span class="muted small">Cooldown: next point in about {{ fmt_wait(cooldown_left) }}.</span>
+        {% endif %}
+      </form>
+    </div>
+
+    <div class="card flush">
+      <h3 class="pad">Recent refills</h3>
+      {% if history %}
+      <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>When</th><th>Type</th><th class="num">Amount</th><th>Served by</th></tr></thead>
+        <tbody>
+        {% for r in history %}
+          <tr>
+            <td class="nowrap">{{ r.created_at|localdt }}</td>
+            <td>{% if r.is_free %}<span class="badge gold">Free</span>{% else %}<span class="badge aqua">Paid</span>{% endif %}</td>
+            <td class="num">{{ r.amount|money }}</td>
+            <td>{{ r.staff or '-' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+        <p class="muted pad">No refills yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card qr-panel">
+      <h3>Client QR code</h3>
+      <img class="qr-img" src="{{ url_for('card_qr', token=client.qr_token) }}" alt="QR code for {{ client.name }}" width="240" height="240">
+      <div class="row center">
+        <a class="btn btn-primary" href="{{ url_for('card', token=client.qr_token) }}" target="_blank" rel="noopener">Open card</a>
+        <a class="btn btn-ghost" href="{{ url_for('card_qr', token=client.qr_token, download=1) }}">Download QR</a>
+      </div>
+      <label class="field">Shareable link
+        <div class="copy-row">
+          <input id="cardLink" readonly value="{{ card_url(client.qr_token) }}">
+          <button class="btn btn-ghost btn-sm" type="button" id="copyBtn">Copy</button>
+        </div>
+      </label>
+    </div>
+
+    {% if current_user.role == 'admin' %}
+    <div class="card danger-zone">
+      <h3>Delete account</h3>
+      <p class="muted small">Removes this client and invalidates their QR code. Past sales stay in your reports.</p>
+      <form method="post" action="{{ url_for('client_delete', client_id=client.id) }}"
+            onsubmit="return confirm('Delete {{ client.name|e }}? This cannot be undone.');">
+        {{ csrf() }}
+        <button class="btn btn-danger" type="submit">Delete client</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById('copyBtn').addEventListener('click', async (e) => {
+    const input = document.getElementById('cardLink');
+    try { await navigator.clipboard.writeText(input.value); }
+    catch (_) { input.select(); document.execCommand('copy'); }
+    e.target.textContent = 'Copied';
+    setTimeout(() => e.target.textContent = 'Copy', 1500);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base_bare.html" %}
+{% from "_macros.html" import logo %}
+{% block title %}{{ title }}{% endblock %}
+{% block body_class %}auth{% endblock %}
+{% block body %}
+<div class="center-page">
+  <div class="card center-card">
+    {{ logo(40) }}
+    <div class="error-code">{{ code }}</div>
+    <h2>{{ title }}</h2>
+    <p class="muted">{{ message }}</p>
+    <a class="btn btn-primary" href="{{ url_for('dashboard') }}">Back to home</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% from "_macros.html" import dots %}
+{% block title %}Clients{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div><div class="eyebrow">Loyalty members</div><h1>Clients</h1></div>
+  <div class="actions"><a class="btn btn-gold" href="{{ url_for('client_new') }}">New client</a></div>
+</header>
+
+<form class="search" method="get">
+  <input type="search" name="q" value="{{ q or '' }}" placeholder="Search by name or phone" aria-label="Search clients">
+  <button class="btn btn-ghost" type="submit">Search</button>
+  {% if q %}
+  <a class="btn btn-ghost" href="{{ request.path }}">Clear</a>
+  {% endif %}
+</form>
+
+<div class="card flush">
+  {% if clients %}
+  <div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Progress</th>
+        <th class="num">Refills</th>
+        <th class="num">Free used</th>
+        <th class="num">Quick refill (Liters)</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% set rate = (price_per_liter if price_per_liter is defined and price_per_liter else 10)|float %}
+    {% for c in clients %}
+      <tr>
+        <td><a class="strong" href="{{ url_for('client_detail', client_id=c.id) }}">{{ c.name }}</a></td>
+        <td class="nowrap">{{ c.phone|phone }}</td>
+        <td>{{ dots(c.points, 'sm') }}</td>
+        <td class="num">{{ c.total_refills }}</td>
+        <td class="num">{{ c.free_refills_redeemed }}</td>
+        <td class="num nowrap">
+          <form class="refill-form" method="post" action="{{ url_for('client_add_refill', client_id=c.id) }}" data-rate="{{ rate }}" style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+            {# Uncomment if Flask-WTF CSRF protection is enabled #}
+            {# <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> #}
+            <input
+              type="number"
+              name="liters"
+              min="0.5"
+              step="0.5"
+              value="10"
+              aria-label="Liters for {{ c.name }}"
+              class="refill-liters"
+              style="width:68px; text-align:right;"
+            >
+            <button class="btn btn-sm btn-ghost preset-btn" type="button" data-add="5">+5L</button>
+            <button class="btn btn-sm btn-ghost preset-btn" type="button" data-add="10">+10L</button>
+            <button class="btn btn-sm btn-ghost preset-btn" type="button" data-add="20">+20L</button>
+            <span class="muted refill-total" style="min-width:86px; text-align:right;">
+              KES {{ "%.2f"|format(10 * rate) }}
+            </span>
+            <button class="btn btn-sm btn-gold" type="submit">Add refill</button>
+          </form>
+        </td>
+        <td class="num nowrap">
+          <a class="btn btn-sm btn-ghost" href="{{ url_for('client_detail', client_id=c.id) }}" aria-label="QR and details for {{ c.name }}">QR &amp; details</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>{% if q %}No clients match “{{ q }}”.{% else %}No clients yet.{% endif %}</p>
+    <a class="btn btn-primary" href="{{ url_for('client_new') }}">Register the first client</a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+document.querySelectorAll(".refill-form").forEach((form) => {
+  const rate = parseFloat(form.dataset.rate || "10");
+  const input = form.querySelector(".refill-liters");
+  const totalEl = form.querySelector(".refill-total");
+
+  function formatKes(val) {
+    return "KES " + val.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function updateTotal(clamp = false) {
+    let liters = parseFloat(input.value);
+    if (isNaN(liters) || liters < 0) {
+      liters = 0;
+    }
+    if (clamp && liters < 0.5) {
+      liters = 0.5;
+      input.value = liters;
+    }
+    totalEl.textContent = formatKes(liters * rate);
+  }
+
+  form.querySelectorAll(".preset-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const current = Math.max(0, parseFloat(input.value || "0"));
+      const add = parseFloat(btn.dataset.add || "0");
+      input.value = current + add;
+      updateTotal(true);
+    });
+  });
+
+  input.addEventListener("input", () => updateTotal(false));
+  input.addEventListener("change", () => updateTotal(true));
+  form.addEventListener("submit", () => updateTotal(true));
+  updateTotal(false);
+});
+</script>
+{% endblock %}
